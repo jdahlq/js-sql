@@ -41,6 +41,17 @@ new sql.Query
   .limit(50)
 ###
 
+# Match chars that should be followed by an underscore
+CAMEL_TO_UNDERSCORE_REGEX = ///
+  (
+      [^A-Z0-9]               # Match lowercase/non-num...
+      (?=[A-Z0-9])            # ... only if it is followed by uppercase/num
+    |                       # OR
+      [A-Z0-9]                # Match uppercase/num...
+      (?=[A-Z0-9][^A-Z0-9])   # ... only if it is followed by uppercase/num then lowercase/non-num
+  )
+///g
+
 class exports.Query
 
   constructor: ->
@@ -68,7 +79,7 @@ class exports.Query
 
   set: (hash) ->
     console.fail 'values func received no args' unless hash?
-    sets = ("#{key} = #{@wrap val}" for key, val of hash)
+    sets = ("#{@camelCaseToUnderscore key} = #{@wrap val}" for key, val of hash)
     @addClause "SET " + sets.join(', ')
 
 
@@ -77,7 +88,7 @@ class exports.Query
     keys = []
     vals = []
     for key, val of hash
-      keys.push key
+      keys.push @camelCaseToUnderscore key
       vals.push @wrap val
 
     @addClause "(#{keys.join(', ')}) VALUES (#{vals.join(', ')})"
@@ -119,7 +130,7 @@ class exports.Query
     @
 
   formatKeyValOp: (key, val, op='=') ->
-    "#{key} #{op} #{@wrap val}"
+    "#{@camelCaseToUnderscore key} #{op} #{@wrap val}"
 
   wrap: (val) ->
     if !val?
@@ -130,6 +141,9 @@ class exports.Query
       "'" + @wrapArraysInSquigglies(val) + "'"
     else
       "'#{val}'"
+
+  camelCaseToUnderscore: (val) ->
+    val.replace(CAMEL_TO_UNDERSCORE_REGEX, (m) -> "#{m}_").toLowerCase()
 
   wrapArraysInSquigglies: (arr) ->
     elements = for element in arr
