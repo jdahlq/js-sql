@@ -70,6 +70,10 @@ class exports.Query
     console.fail '"into" func received non-string arg, not yet implemented' if typeof table != 'string'
     @addClause "INSERT INTO #{table}"
 
+  limit: (num) ->
+    console.fail 'requires a number' unless typeof num == 'number'
+    @addClause "LIMIT #{num}"
+
   select: (fields...) ->
     console.fail 'select func received no args' if fields.length == 0
     @addClause "SELECT #{fields.join(', ')}"
