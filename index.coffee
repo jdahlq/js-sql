@@ -142,20 +142,25 @@ class exports.Query
     else if typeof val is 'number'
       val
     else if val instanceof Array
-      "'" + @wrapArraysInSquigglies(val) + "'"
-    else
+      @wrapArray val
+    else if typeof val is 'string'
       "'#{val}'"
+    else
+      @wrapObject val
 
   camelCaseToUnderscore: (val) ->
     val.replace(CAMEL_TO_UNDERSCORE_REGEX, (m) -> "#{m}_").toLowerCase()
 
-  wrapArraysInSquigglies: (arr) ->
+  wrapArray: (arr) ->
     elements = for element in arr
-      if element instanceof Array
-        @wrapArraysInSquigglies element
-      else if typeof element is 'number'
+      if typeof element is 'number'
         element
+      else if typeof element is 'string'
+        "'#{element}'"
       else
-        '"' + element + '"'
+        @wrapObject element
 
-    "{#{elements.join(', ')}}"
+    "ARRAY[#{elements.join(', ')}]"
+
+  wrapObject: (obj) ->
+    "json'#{JSON.stringify obj}'"
