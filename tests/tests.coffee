@@ -56,3 +56,17 @@ module.exports = vows.describe('Le SQL querying in le Javascript')
     'should serialize the objects and subarrays as json': (topic) ->
       expected = """INSERT INTO roundtable (cliques, swords) VALUES (json'{"preppies":["Lancelot","Sir Not Appearing In This Film"]}', ARRAY[json'["Excalibur","Other ones"]', json'["swordA"]']);"""
       assert.equal topic, expected
+
+  'INSERT query with a Buffer':
+    topic: ->
+      hash = (require 'crypto').createHash 'sha1'
+      hash.update "Tapanga!"
+      buff = new Buffer(hash.digest(), 'binary')
+      new sql.Query()
+        .insertInto('roundtable')
+        .values
+          sha: buff
+        .toString()
+    'should serialize the Buffer into hex': (topic) ->
+      expected = """INSERT INTO roundtable (sha) VALUES (decode('748e9f4b1dc0550d3da0b3944ab81ce9e8c03b79','hex'));"""
+      assert.equal topic, expected

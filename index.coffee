@@ -145,6 +145,9 @@ class exports.Query
       @wrapArray val
     else if typeof val is 'string'
       "'#{val}'"
+    else if val.constructor.name == 'Buffer'
+      hexString = val.toString 'hex'
+      "decode('#{hexString}','hex')"
     else
       @wrapObject val
 
